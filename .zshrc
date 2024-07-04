@@ -68,7 +68,7 @@ alias v='nvim'
 alias c='clear'
 
 # Shell integrations
-eval "$(fzf  --no-color --height 40% --layout=reverse --border)"
+# eval "$(fzf  --no-color --height 40% --layout=reverse --border)"
 eval "$(zoxide init --cmd cd zsh)"
 # eval "$(zoxide init zsh)"
 ghcs() {
