@@ -1,0 +1,127 @@
+---
+- name: Setup Development Environment
+  hosts: all
+  become: yes
+
+  vars:
+    nerd_font_url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
+    nerd_font_dest: "/usr/share/fonts/JetBrainsMono"
+    nvim_url: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+    nvim_dest: "/opt/nvim"
+    zshrc_path: "~/.zshrc"
+    nvchad_repo: "https://github.com/NvChad/NvChad"
+    nvchad_dest: "~/.config/nvim"
+
+  tasks:
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install required packages
+      ansible.builtin.package:
+        name:
+          - curl
+          - git
+          - unzip
+          - tar
+          - zsh
+          - fontconfig
+          - tmux
+        state: present
+
+    - name: Install and set up zsh as the default shell
+      shell: |
+        chsh -s $(which zsh)
+        if [ ! -f {{ zshrc_path }} ]; then
+          touch {{ zshrc_path }}
+        fi
+      args:
+        executable: /bin/zsh
+
+    - name: Create directory for NerdFont
+      ansible.builtin.file:
+        path: "{{ nerd_font_dest }}"
+        state: directory
+
+    - name: Download NerdFont JetBrains Mono
+      ansible.builtin.get_url:
+        url: "{{ nerd_font_url }}"
+        dest: "/tmp/JetBrainsMono.zip"
+
+    - name: Extract NerdFont JetBrains Mono
+      ansible.builtin.unarchive:
+        src: "/tmp/JetBrainsMono.zip"
+        dest: "{{ nerd_font_dest }}"
+        remote_src: yes
+
+    - name: Update font cache
+      ansible.builtin.command:
+        cmd: "fc-cache -fv"
+      become: true
+
+    - name: Create directory for Neovim
+      ansible.builtin.file:
+        path: "{{ nvim_dest }}"
+        state: directory
+
+    - name: Download and install Neovim
+      ansible.builtin.get_url:
+        url: "{{ nvim_url }}"
+        dest: "/tmp/nvim-linux64.tar.gz"
+
+    - name: Extract Neovim
+      ansible.builtin.unarchive:
+        src: "/tmp/nvim-linux64.tar.gz"
+        dest: "{{ nvim_dest }}"
+        remote_src: yes
+
+    - name: Add Neovim to PATH
+      lineinfile:
+        path: "{{ zshrc_path }}"
+        line: 'export PATH="$PATH:/opt/nvim/nvim-linux64/bin"'
+        create: yes
+
+    - name: Clone NvChad
+      ansible.builtin.git:
+        repo: "{{ nvchad_repo }}"
+        dest: "{{ nvchad_dest }}"
+        version: "v2.0"
+
+    - name: Install FNM (Fast Node Manager)
+      shell: "curl -fsSL https://fnm.vercel.app/install | bash"
+      args:
+        executable: /bin/zsh
+
+    - name: Initialize FNM in zshrc
+      lineinfile:
+        path: "{{ zshrc_path }}"
+        line: 'eval "$(fnm env)"'
+
+    - name: Install Node.js using FNM
+      shell: |
+        source {{ zshrc_path }}
+        fnm install 20
+        fnm use 20
+      args:
+        executable: /bin/zsh
+
+    - name: Install latest npm globally
+      shell: |
+        source {{ zshrc_path }}
+        npm install -g npm
+      args:
+        executable: /bin/zsh
+
+    - name: Verify Node.js and npm installation
+      shell: |
+        source {{ zshrc_path }}
+        node -v
+        npm -v
+      args:
+        executable: /bin/zsh
+
+    - name: Source .zshrc
+      shell: |
+        source {{ zshrc_path }}
+      args:
+        executable: /bin/zsh
