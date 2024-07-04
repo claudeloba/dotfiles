@@ -30,6 +30,7 @@
           - fontconfig
           - tmux
           - stow
+          - fzf
         state: present
 
     - name: Install and set up zsh as the default shell
@@ -135,6 +136,12 @@
         npm -v
       args:
         executable: /bin/zsh
+
+    - name: Install zoxide
+      shell: "curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh"
+      args:
+        executable: /bin/bash
+      become: true
 
     - name: Source .zshrc
       shell: |
