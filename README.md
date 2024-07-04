@@ -30,6 +30,7 @@ my_ansible_project/setup.yaml
 
 1. Setup folder structure as mentioned above
 2. run `ansible-playbook -i inventory/hosts setup.yaml`
+3. If only wish to install dotfiles, run `ansible-playbook -i inventory/hosts setup.yaml --tags "dotfiles"`
 
 ## After running the playbook:
 
