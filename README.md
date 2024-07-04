@@ -14,6 +14,7 @@ This playbook will setup your system with the following:
 ## Folder structure
 
 my_ansible_project/inventory/hosts
+
 my_ansible_project/setup.yaml
 
 ## Pre-required setup before running playbook:

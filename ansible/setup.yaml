@@ -11,6 +11,8 @@
     zshrc_path: "~/.zshrc"
     nvchad_repo: "https://github.com/NvChad/NvChad"
     nvchad_dest: "~/.config/nvim"
+    dotfiles_repo: "https://github.com/claudeloba/dotfiles"
+    dotfiles_dest: "{{ lookup('env', 'HOME') }}/dotfiles"
 
   tasks:
     - name: Update package cache
@@ -27,6 +29,7 @@
           - zsh
           - fontconfig
           - tmux
+          - stow
         state: present
 
     - name: Install and set up zsh as the default shell
@@ -87,6 +90,19 @@
         dest: "{{ nvchad_dest }}"
         version: "v2.0"
 
+    - name: Clone dotfiles repository
+      ansible.builtin.git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_dest }}"
+        version: main
+
+    - name: Run stow --adopt .
+      ansible.builtin.command:
+        cmd: "stow --adopt ."
+        chdir: "{{ dotfiles_dest }}"
+      tags:
+        - dotfiles
+
     - name: Install FNM (Fast Node Manager)
       shell: "curl -fsSL https://fnm.vercel.app/install | bash"
       args:
@@ -125,3 +141,5 @@
         source {{ zshrc_path }}
       args:
         executable: /bin/zsh
+
+  tags: dotfiles
